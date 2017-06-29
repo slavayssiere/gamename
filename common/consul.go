@@ -58,7 +58,7 @@ func GetOutboundIP() string {
 // Register a service with consul local agent
 func (c *ConsulClient) Register(name string, port int) error {
 	ipAddress := GetOutboundIP()
-
+	log.Println("Register with IP:" + ipAddress)
 	check := &consul.AgentServiceCheck{
 		HTTP:                           "http://" + ipAddress + ":8080/health",
 		Interval:                       "15s",
@@ -67,10 +67,12 @@ func (c *ConsulClient) Register(name string, port int) error {
 	}
 
 	reg := &consul.AgentServiceRegistration{
-		Name:  name,
-		Port:  port,
-		Check: check,
+		Name:    name,
+		Address: ipAddress,
+		Port:    port,
+		Check:   check,
 	}
+
 	return c.consul.Agent().ServiceRegister(reg)
 }
 

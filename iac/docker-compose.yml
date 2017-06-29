@@ -1,12 +1,5 @@
 version: "3"  
 services:  
-  prometheus:
-    image: quay.io/prometheus/prometheus:latest
-    ports:
-     - 9090:9090
-    volumes:
-     - "./prometheus.yml:/etc/prometheus/prometheus.yml"
-
   consul:
     image: consul
     ports:
@@ -15,4 +8,37 @@ services:
   player:
     image: slavayssiere/player:0.1 
     ports:
-      - 8080:8080
+      - 8080
+    links:
+      - consul:consul
+    environment:
+      - CONSUL_HOST=consul:8500
+    labels:
+      - "traefik.backend=player"
+      - "traefik.frontend.rule=Host:player.docker.localhost"
+
+  loadbalancer:
+    image: traefik
+    command: --web --docker --docker.domain=docker.localhost --logLevel=DEBUG
+    networks:
+      - webgateway
+    ports:
+      - "80:80"
+      - "8081:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /dev/null:/traefik.toml
+  
+  prometheus:
+    image: quay.io/prometheus/prometheus:latest
+    ports:
+     - 9090:9090
+    volumes:
+     - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    links:
+     - consul:consul
+     - player:player
+
+networks:
+  webgateway:
+    driver: bridge
