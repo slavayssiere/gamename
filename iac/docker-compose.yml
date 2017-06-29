@@ -1,0 +1,18 @@
+version: "3"  
+services:  
+  prometheus:
+    image: quay.io/prometheus/prometheus:latest
+    ports:
+     - 9090:9090
+    volumes:
+     - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+
+  consul:
+    image: consul
+    ports:
+      - 8500:8500
+
+  player:
+    image: slavayssiere/player:0.1 
+    ports:
+      - 8080:8080
