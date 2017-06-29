@@ -1,5 +1,9 @@
 package main
 
+
+// @SubApi Index [/]
+// @SubApi allow you to test slash [/]
+
 import (
 	"encoding/json"
 	"net/http"
@@ -7,31 +11,7 @@ import (
 	"github.com/slavayssiere/gamename/common"
 )
 
-type GoogleAuth struct {
-	Azp           string `json:"azp"`
-	Aud           string `json:"aud"`
-	Sub           string `json:"sub"`
-	Hd            string `json:"hd"`
-	Email         string `json:"email"`
-	EmailVerified string `json:"email_verified"`
-	Hash          string `json:"at_hash"`
-	Iss           string `json:"iss"`
-	Iat           string `json:"iat"`
-	Exp           string `json:"exp"`
-	Name          string `json:"name"`
-	Picture       string `json:"picture"`
-	GivenName     string `json:"given_name"`
-	FamillyName   string `json:"family_name"`
-	Locale        string `json:"locale"`
-	Alg           string `json:"alg"`
-	Kid           string `json:"kid"`
-	Profil        string `json:"profil"`
-}
-
-type VersionData struct {
-	Version int `json:"version"`
-}
-
+// Index function for slash
 func Index(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
@@ -41,32 +21,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(record); err != nil {
 		panic(err)
 	}
-}
-
-func VersionAPI(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-
-	version := VersionData{Version: 1}
-
-	if err := json.NewEncoder(w).Encode(version); err != nil {
-		panic(err)
-	}
-}
-
-var routes = common.Routes{
-	common.Route{
-		"Index",
-		"GET",
-		"/",
-		Index,
-	},
-	common.Route{
-		"Version",
-		"GET",
-		"/version",
-		VersionAPI,
-	},
 }
 
 // func Connect(w http.ResponseWriter, r *http.Request) {
@@ -108,3 +62,25 @@ var routes = common.Routes{
 // 		panic(err)
 // 	}
 // }
+
+
+// type GoogleAuth struct {
+// 	Azp           string `json:"azp"`
+// 	Aud           string `json:"aud"`
+// 	Sub           string `json:"sub"`
+// 	Hd            string `json:"hd"`
+// 	Email         string `json:"email"`
+// 	EmailVerified string `json:"email_verified"`
+// 	Hash          string `json:"at_hash"`
+// 	Iss           string `json:"iss"`
+// 	Iat           string `json:"iat"`
+// 	Exp           string `json:"exp"`
+// 	Name          string `json:"name"`
+// 	Picture       string `json:"picture"`
+// 	GivenName     string `json:"given_name"`
+// 	FamillyName   string `json:"family_name"`
+// 	Locale        string `json:"locale"`
+// 	Alg           string `json:"alg"`
+// 	Kid           string `json:"kid"`
+// 	Profil        string `json:"profil"`
+}

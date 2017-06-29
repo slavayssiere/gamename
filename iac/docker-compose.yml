@@ -21,6 +21,22 @@ services:
       - "traefik.frontend.rule=Host:player.localhost"
     networks:
       - netgate
+  
+
+  playerdb:
+    image: mariadb:10.3.0
+    ports:
+      - 8080
+    environment:
+      - MYSQL_ROOT_PASSWORD=my-secret-pw
+      - MYSQL_DATABASE=player
+      - MYSQL_USER=myaccount
+      - MYSQL_PASSWORD=mypassword
+    labels:
+      - "traefik.backend=player"
+      - "traefik.frontend.rule=Host:player.localhost"
+    networks:
+      - netgate
 
   loadbalancer:
     image: traefik
@@ -44,8 +60,19 @@ services:
     links:
      - consul:consul
      - player:player
+     - prom-playerdb:prom-playerdb
     networks:
       - netgate
+  
+  prom-playerdb:
+    image: prom/mysqld-exporter
+    ports:
+      - 9104:9104
+    links:
+      - playerdb:bdd
+    environment:
+      - DATA_SOURCE_NAME="myaccount:mypassword@(bdd:3306)/player"
+    
 
 networks:
   netgate:

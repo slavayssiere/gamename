@@ -9,6 +9,8 @@ import (
 	"strings"
 	"syscall"
 
+	"time"
+
 	consul "github.com/hashicorp/consul/api"
 )
 
@@ -72,6 +74,7 @@ func (c *ConsulClient) Register(name string, port int) error {
 	var listTags []string
 	listTags = append(listTags, "traefik.backend="+name)
 	listTags = append(listTags, "traefik.frontend.rule=Host:"+name+".localhost")
+	listTags = append(listTags, "metrics")
 
 	reg := &consul.AgentServiceRegistration{
 		ID:      idService,
@@ -110,11 +113,24 @@ func ConsulManagement(name string) {
 		fmt.Println("Erreur in consul connexion: ", err)
 	}
 	client.Register(name, 8080)
+
+	//deregister when Ctrl+C
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
 		client.DeRegister(name)
 		os.Exit(1)
+	}()
+
+	go func() {
+		addrs, _, err := client.Service("player", "*")
+		if err != nil {
+			fmt.Println("Erreur in consul list services: ", err)
+		}
+		for _, addr := range addrs {
+			log.Println(addr.Service.Service + "@" + addr.Service.Address)
+		}
+		time.Sleep(1000 * time.Millisecond)
 	}()
 }
