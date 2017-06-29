@@ -1,9 +1,12 @@
-version: "3"  
+version: "3"
+
 services:  
   consul:
     image: consul
     ports:
       - 8500:8500
+    networks:
+      - netgate
 
   player:
     image: slavayssiere/player:0.1 
@@ -15,19 +18,22 @@ services:
       - CONSUL_HOST=consul:8500
     labels:
       - "traefik.backend=player"
-      - "traefik.frontend.rule=Host:player.docker.localhost"
+      - "traefik.frontend.rule=Host:player.localhost"
+    networks:
+      - netgate
 
   loadbalancer:
     image: traefik
-    command: --web --docker --docker.domain=docker.localhost --logLevel=DEBUG
-    networks:
-      - webgateway
+    command: --web --logLevel=DEBUG
     ports:
-      - "80:80"
-      - "8081:8080"
+      - 8082:80
+      - 8081:8080
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /dev/null:/traefik.toml
+      - "./traefik.toml:/traefik.toml"
+    links:
+      - consul:consul
+    networks:
+      - netgate
   
   prometheus:
     image: quay.io/prometheus/prometheus:latest
@@ -38,7 +44,9 @@ services:
     links:
      - consul:consul
      - player:player
+    networks:
+      - netgate
 
 networks:
-  webgateway:
+  netgate:
     driver: bridge

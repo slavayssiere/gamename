@@ -68,12 +68,18 @@ func (c *ConsulClient) Register(name string, port int) error {
 
 	var idService string
 	idService = name + ipAddress
+
+	var listTags []string
+	listTags = append(listTags, "traefik.backend="+name)
+	listTags = append(listTags, "traefik.frontend.rule=Host:"+name+".localhost")
+
 	reg := &consul.AgentServiceRegistration{
 		ID:      idService,
 		Name:    name,
 		Address: ipAddress,
 		Port:    port,
 		Check:   check,
+		Tags:    listTags,
 	}
 
 	return c.consul.Agent().ServiceRegister(reg)
