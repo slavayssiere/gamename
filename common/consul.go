@@ -66,7 +66,10 @@ func (c *ConsulClient) Register(name string, port int) error {
 		DeregisterCriticalServiceAfter: "15s",
 	}
 
+	var idService string
+	idService = name + ipAddress
 	reg := &consul.AgentServiceRegistration{
+		ID:      idService,
 		Name:    name,
 		Address: ipAddress,
 		Port:    port,
