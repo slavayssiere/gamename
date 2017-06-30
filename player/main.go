@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/handlers"
 	"github.com/slavayssiere/gamename/common"
-	"github.com/slavayssiere/gamename/player/models"
 	mgo "gopkg.in/mgo.v2"
 )
 
@@ -23,7 +23,11 @@ type Env struct {
 }
 
 func main() {
-	db, err := models.ConnectDatabase("playerdb")
+	addr := os.Getenv("MONGO_HOST")
+	if len(addr) == 0 {
+		addr = "localhost"
+	}
+	db, err := ConnectDatabase(addr)
 	if err != nil {
 		log.Panic(err)
 	}

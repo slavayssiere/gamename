@@ -5,9 +5,10 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
-	"github.com/slavayssiere/gamename/player/models"
+	mgo "gopkg.in/mgo.v2"
 )
 
 // PlayerCreate function to create user
@@ -22,10 +23,25 @@ func (env *Env) PlayerCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	player1 := models.Player{FirstName: "sebastien", LastName: "lavayssiere"}
+	player1 := Player{FirstName: "sebastien", LastName: "lavayssiere"}
 	player1.Create(env.session)
 
 	if err := json.NewEncoder(w).Encode(player1); err != nil {
 		panic(err)
+	}
+}
+
+type Player struct {
+	FirstName string `json:"firstname"`
+	LastName  string `json:"lastname"`
+}
+
+func (player *Player) Create(session *mgo.Session) {
+	c := session.DB("player").C("player")
+
+	err := c.Insert(&player)
+
+	if err != nil {
+		log.Fatal(err)
 	}
 }

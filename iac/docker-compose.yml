@@ -14,8 +14,10 @@ services:
       - 8080
     links:
       - consul:consul
+      - playerdb:playerdb
     environment:
       - CONSUL_HOST=consul:8500
+      - MONGO_HOST=playerdb
     labels:
       - "traefik.backend=player"
       - "traefik.frontend.rule=Host:player.localhost"
@@ -34,6 +36,8 @@ services:
   #     - netgate
   playerdb:
     image: mongo:3.5.9
+    ports:
+      - 27017:27017
     networks:
       - netgate
 

@@ -1,4 +1,4 @@
-package models
+package main
 
 import (
 	"log"
@@ -13,7 +13,6 @@ func ConnectDatabase(connectionString string) (*mgo.Session, error) {
 		log.Printf("erreur in connexion: %s", err)
 		return nil, err
 	}
-	defer session.Close()
 
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)

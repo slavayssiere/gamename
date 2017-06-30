@@ -32,7 +32,7 @@ type ConsulClient struct {
 func NewConsulClient() (*ConsulClient, error) {
 	config := consul.DefaultConfig()
 	addr := os.Getenv("CONSUL_HOST")
-	if len(config.Address) == 0 {
+	if len(addr) == 0 {
 		addr = "127.0.0.1:8500"
 	}
 	config.Address = addr
