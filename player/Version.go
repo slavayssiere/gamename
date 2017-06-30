@@ -22,7 +22,7 @@ type VersionData struct {
 // @Failure 401 {object} string &quot;Access denied&quot;
 // @Failure 404 {object} string &quot;Not Found&quot;
 // @Resource /version
-func VersionAPI(w http.ResponseWriter, r *http.Request) {
+func (env *Env) VersionAPI(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 

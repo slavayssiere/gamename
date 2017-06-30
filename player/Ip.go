@@ -15,7 +15,7 @@ type IPData struct {
 	IP string `json:"ip"`
 }
 
-// getIP function to display IP
+// GetIP function to display IP
 // @Title Get IP Information
 // @Description Get IP Information
 // @Accept json
@@ -23,7 +23,7 @@ type IPData struct {
 // @Failure 401 {object} string &quot;Access denied&quot;
 // @Failure 404 {object} string &quot;Not Found&quot;
 // @Resource /ip
-func getIP(w http.ResponseWriter, r *http.Request) {
+func (env *Env) GetIP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 

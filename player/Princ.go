@@ -1,18 +1,15 @@
 package main
 
-
 // @SubApi Index [/]
 // @SubApi allow you to test slash [/]
 
 import (
 	"encoding/json"
 	"net/http"
-
-	"github.com/slavayssiere/gamename/common"
 )
 
 // Index function for slash
-func Index(w http.ResponseWriter, r *http.Request) {
+func (env *Env) Index(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
@@ -63,7 +60,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 // 	}
 // }
 
-
 // type GoogleAuth struct {
 // 	Azp           string `json:"azp"`
 // 	Aud           string `json:"aud"`
@@ -83,4 +79,4 @@ func Index(w http.ResponseWriter, r *http.Request) {
 // 	Alg           string `json:"alg"`
 // 	Kid           string `json:"kid"`
 // 	Profil        string `json:"profil"`
-}
+// }

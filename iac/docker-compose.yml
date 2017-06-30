@@ -23,18 +23,17 @@ services:
       - netgate
   
 
+  # playerdb:
+  #   image: mariadb:10.3.0
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=my-secret-pw
+  #     - MYSQL_DATABASE=player
+  #     - MYSQL_USER=myaccount
+  #     - MYSQL_PASSWORD=mypassword
+  #   networks:
+  #     - netgate
   playerdb:
-    image: mariadb:10.3.0
-    ports:
-      - 8080
-    environment:
-      - MYSQL_ROOT_PASSWORD=my-secret-pw
-      - MYSQL_DATABASE=player
-      - MYSQL_USER=myaccount
-      - MYSQL_PASSWORD=mypassword
-    labels:
-      - "traefik.backend=player"
-      - "traefik.frontend.rule=Host:player.localhost"
+    image: mongo:3.5.9
     networks:
       - netgate
 
@@ -64,15 +63,30 @@ services:
     networks:
       - netgate
   
+  # prom-playerdb:
+  #   image: prom/mysqld-exporter
+  #   ports:
+  #     - 9104:9104
+  #   links:
+  #     - playerdb:bdd
+  #   depends_on:
+  #     - playerdb
+  #   environment:
+  #     - DATA_SOURCE_NAME="myaccount:mypassword@(bdd:3306)/player"
+  #   networks:
+  #     - netgate
+    
   prom-playerdb:
-    image: prom/mysqld-exporter
+    image: eses/mongodb_exporter
+    command: -mongodb.uri mongodb://bdd:27017
     ports:
       - 9104:9104
     links:
       - playerdb:bdd
-    environment:
-      - DATA_SOURCE_NAME="myaccount:mypassword@(bdd:3306)/player"
-    
+    depends_on:
+      - playerdb
+    networks:
+      - netgate
 
 networks:
   netgate:
