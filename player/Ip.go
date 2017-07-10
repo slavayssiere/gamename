@@ -5,10 +5,9 @@ package main
 
 import (
 	"encoding/json"
-	"log"
-	"net"
 	"net/http"
-	"strings"
+
+	"github.com/slavayssiere/gamename/common"
 )
 
 type IPData struct {
@@ -27,23 +26,9 @@ func (env *Env) GetIP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	ipdata := IPData{IP: GetOutboundIP()}
+	ipdata := IPData{IP: common.GetOutboundIP()}
 
 	if err := json.NewEncoder(w).Encode(ipdata); err != nil {
 		panic(err)
 	}
-}
-
-// GetOutboundIP Get preferred outbound ip of this machine
-func GetOutboundIP() string {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().String()
-	idx := strings.LastIndex(localAddr, ":")
-
-	return localAddr[0:idx]
 }

@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // PlayerCreate function to create user
@@ -23,7 +24,7 @@ func (env *Env) PlayerCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	player1 := Player{FirstName: "sebastien", LastName: "lavayssiere"}
+	player1 := Player{FirstName: "aurelie", LastName: "samson"}
 	player1.Create(env.session)
 
 	if err := json.NewEncoder(w).Encode(player1); err != nil {
@@ -32,14 +33,21 @@ func (env *Env) PlayerCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 type Player struct {
-	FirstName string `json:"firstname"`
-	LastName  string `json:"lastname"`
+	ID        bson.ObjectId `json:"id" bson:"_id,omitempty"`
+	FirstName string        `json:"firstname"`
+	LastName  string        `json:"lastname"`
 }
 
 func (player *Player) Create(session *mgo.Session) {
 	c := session.DB("player").C("player")
 
 	err := c.Insert(&player)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = c.Find(bson.M{"firstname": "aurelie"}).One(&player)
 
 	if err != nil {
 		log.Fatal(err)

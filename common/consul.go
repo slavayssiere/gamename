@@ -6,10 +6,11 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"time"
+
+	"strconv"
 
 	consul "github.com/hashicorp/consul/api"
 )
@@ -45,16 +46,25 @@ func NewConsulClient() (*ConsulClient, error) {
 
 // Get preferred outbound ip of this machine
 func GetOutboundIP() string {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
+	var clt []string
+	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		log.Fatal(err)
+		os.Stderr.WriteString("Oops: " + err.Error() + "\n")
+		os.Exit(1)
 	}
-	defer conn.Close()
 
-	localAddr := conn.LocalAddr().String()
-	idx := strings.LastIndex(localAddr, ":")
+	log.Printf("%s", addrs)
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				log.Println("ip found: " + ipnet.IP.String())
+				clt = append(clt, ipnet.IP.String())
+				//os.Stdout.WriteString(ipnet.IP.String() + "\n")
+			}
+		}
+	}
 
-	return localAddr[0:idx]
+	return clt[0]
 }
 
 // Register a service with consul local agent
@@ -114,9 +124,10 @@ func ConsulManagement(name string) {
 	}
 	client.Register(name, 8080)
 
-	//deregister when Ctrl+C
+	//deregister when Ctrl+C && exit
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(c, os.Interrupt, syscall.SIGINT)
 	go func() {
 		<-c
 		client.DeRegister(name)
@@ -124,13 +135,16 @@ func ConsulManagement(name string) {
 	}()
 
 	go func() {
-		addrs, _, err := client.Service("player", "*")
-		if err != nil {
-			fmt.Println("Erreur in consul list services: ", err)
+		for {
+			addrs, _, err := client.consul.Catalog().Service("player", "", nil)
+			if err != nil {
+				log.Println("Erreur in consul list services: ", err)
+			}
+			for _, addr := range addrs {
+				log.Println(addr.ServiceAddress + ":" + strconv.Itoa(addr.ServicePort))
+			}
+			log.Println("wait...")
+			time.Sleep(10000 * time.Millisecond)
 		}
-		for _, addr := range addrs {
-			log.Println(addr.Service.Service + "@" + addr.Service.Address)
-		}
-		time.Sleep(1000 * time.Millisecond)
 	}()
 }

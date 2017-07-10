@@ -25,7 +25,7 @@ type Env struct {
 func main() {
 	addr := os.Getenv("MONGO_HOST")
 	if len(addr) == 0 {
-		addr = "localhost"
+		addr = "127.0.0.1"
 	}
 	db, err := ConnectDatabase(addr)
 	if err != nil {

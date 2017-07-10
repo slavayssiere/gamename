@@ -9,7 +9,7 @@ services:
       - netgate
 
   player:
-    image: slavayssiere/player:0.1 
+    image: slavayssiere/player:0.1
     ports:
       - 8080
     links:
@@ -54,6 +54,17 @@ services:
     networks:
       - netgate
   
+  grafana:
+    image: grafana/grafana
+    ports:
+     - 3000:3000
+    links:
+     - prometheus:prometheus
+    environment:
+     - GF_SECURITY_ADMIN_PASSWORD=secret
+    networks:
+      - netgate
+  
   prometheus:
     image: quay.io/prometheus/prometheus:latest
     ports:
@@ -66,7 +77,7 @@ services:
      - prom-playerdb:prom-playerdb
     networks:
       - netgate
-  
+
   # prom-playerdb:
   #   image: prom/mysqld-exporter
   #   ports:
@@ -89,6 +100,18 @@ services:
       - playerdb:bdd
     depends_on:
       - playerdb
+    networks:
+      - netgate   
+
+  prom-consul:
+    image: prom/consul-exporter
+    command: -consul.server=consul:8500
+    ports:
+      - 9107:9107
+    links:
+      - consul:consul
+    depends_on:
+      - consul
     networks:
       - netgate
 
