@@ -1,19 +1,48 @@
 version: "3"
 
 services:  
-  consul:
+  consul-master-1:
     image: consul
+    command: agent -server -bootstrap-expect=3 -node=consul-master-1 -bind='{{ GetInterfaceIP "eth0" }}' -client=0.0.0.0 -ui
     ports:
       - 8500:8500
+    volumes:
+      - consul-1:/consul/data
+    networks:
+      - netgate
+
+  consul-master-2:
+    image: consul
+    entrypoint: consul
+    command: agent -server -retry-join=consul -node=consul-master-2 -bind='{{ GetInterfaceIP "eth0" }}' -data-dir=/consul/data -client=0.0.0.0
+    depends_on:
+      - consul-master-1
+    volumes:
+      - consul-2:/consul/data
+    links:
+      - consul-master-1:consul
+    networks:
+      - netgate
+
+#-disable-host-node-id
+
+  consul-master-3:
+    image: consul
+    entrypoint: consul
+    command: agent -server -retry-join=consul -node=consul-master-3 -bind='{{ GetInterfaceIP "eth0" }}' -data-dir=/consul/data -client=0.0.0.0
+    depends_on:
+      - consul-master-1
+    volumes:
+      - consul-3:/consul/data
+    links:
+      - consul-master-1:consul
     networks:
       - netgate
 
   player:
     image: slavayssiere/player:0.1
-    ports:
-      - 8080
     links:
-      - consul:consul
+      - consul-master-1:consul
       - playerdb:playerdb
     environment:
       - CONSUL_HOST=consul:8500
@@ -23,17 +52,7 @@ services:
       - "traefik.frontend.rule=Host:player.localhost"
     networks:
       - netgate
-  
 
-  # playerdb:
-  #   image: mariadb:10.3.0
-  #   environment:
-  #     - MYSQL_ROOT_PASSWORD=my-secret-pw
-  #     - MYSQL_DATABASE=player
-  #     - MYSQL_USER=myaccount
-  #     - MYSQL_PASSWORD=mypassword
-  #   networks:
-  #     - netgate
   playerdb:
     image: mongo:3.5.9
     ports:
@@ -50,7 +69,7 @@ services:
     volumes:
       - "./traefik.toml:/traefik.toml"
     links:
-      - consul:consul
+      - consul-master-1:consul
     networks:
       - netgate
   
@@ -72,11 +91,48 @@ services:
     volumes:
      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
     links:
-     - consul:consul
+     - consul-master-1:consul
      - player:player
      - prom-playerdb:prom-playerdb
     networks:
       - netgate
+
+  prom-playerdb:
+    image: eses/mongodb_exporter
+    command: -mongodb.uri mongodb://bdd:27017
+    links:
+      - playerdb:bdd
+    depends_on:
+      - playerdb
+    networks:
+      - netgate   
+
+  prom-consul:
+    image: prom/consul-exporter
+    command: -consul.server=consul:8500
+    links:
+      - consul-master-1:consul
+    depends_on:
+      - consul-master-1
+    networks:
+      - netgate
+
+################# OLD STUFF
+  # playerdb:
+  #   image: mariadb:10.3.0
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=my-secret-pw
+  #     - MYSQL_DATABASE=player
+  #     - MYSQL_USER=myaccount
+  #     - MYSQL_PASSWORD=mypassword
+  #   networks:
+  #     - netgate
+  # playerdb:
+  #   image: mongo:3.5.9
+  #   ports:
+  #     - 27017:27017
+  #   networks:
+  #     - netgate
 
   # prom-playerdb:
   #   image: prom/mysqld-exporter
@@ -91,30 +147,12 @@ services:
   #   networks:
   #     - netgate
     
-  prom-playerdb:
-    image: eses/mongodb_exporter
-    command: -mongodb.uri mongodb://bdd:27017
-    ports:
-      - 9104:9104
-    links:
-      - playerdb:bdd
-    depends_on:
-      - playerdb
-    networks:
-      - netgate   
-
-  prom-consul:
-    image: prom/consul-exporter
-    command: -consul.server=consul:8500
-    ports:
-      - 9107:9107
-    links:
-      - consul:consul
-    depends_on:
-      - consul
-    networks:
-      - netgate
-
 networks:
   netgate:
     driver: bridge
+
+volumes:
+  consul-1:
+  consul-2:
+  consul-3:
+    
