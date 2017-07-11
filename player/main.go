@@ -62,6 +62,8 @@ func main() {
 
 	router := common.NewRouter(routes)
 	common.ConsulManagement("player")
+	common.ListenService("consul")
+	common.ListenService("player")
 
 	headersOk := handlers.AllowedHeaders([]string{"authorization", "content-type"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})

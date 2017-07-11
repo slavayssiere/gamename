@@ -1,0 +1,28 @@
+
+origine golang
+key points
+
+how to compile ?
+
+syntax code
+syntax objet
+
+miniwebserver
+
+ressources:
+ - bleu
+ - rouge
+ - vert
+
+liste équipes: alpha, bravo
+GET ressources/{bleu, rouge, vert}
+
+1 ressource = 1 point
+
+POST ressources (1 de chaque en moins)
+    ,10 points en plus
+    ,prend 5ms
+    ,si pas assez de ressource: -5 points
+
+vole de ressources:  ressources/vole/uid equipe: 1 ressource au hasard
+

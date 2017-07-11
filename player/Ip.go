@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"log"
+
 	"github.com/slavayssiere/gamename/common"
 )
 
@@ -27,6 +29,11 @@ func (env *Env) GetIP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	ipdata := IPData{IP: common.GetOutboundIP()}
+
+	log.Println("consul")
+	log.Println(common.ListenServices["consul"])
+	log.Println("player")
+	log.Println(common.ListenServices["player"])
 
 	if err := json.NewEncoder(w).Encode(ipdata); err != nil {
 		panic(err)
