@@ -30,10 +30,10 @@ func (env *Env) GetIP(w http.ResponseWriter, r *http.Request) {
 
 	ipdata := IPData{IP: common.GetOutboundIP()}
 
-	log.Println("consul")
-	log.Println(common.ListenServices["consul"])
+	log.Println("player2")
+	log.Println(common.ListServices["player2"])
 	log.Println("player")
-	log.Println(common.ListenServices["player"])
+	log.Println(common.ListServices["player"])
 
 	if err := json.NewEncoder(w).Encode(ipdata); err != nil {
 		panic(err)

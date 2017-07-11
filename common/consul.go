@@ -119,7 +119,7 @@ func (c *ConsulClient) Service(service string, tag string) ([]*consul.ServiceEnt
 var client *ConsulClient
 
 // ConsulManagement about Consul
-func ConsulManagement(name string) {
+func ConsulManagement(name string) (client *ConsulClient) {
 	client, err := NewConsulClient()
 	if err != nil {
 		fmt.Println("Erreur in consul connexion: ", err)
@@ -135,14 +135,19 @@ func ConsulManagement(name string) {
 		client.DeRegister(name)
 		os.Exit(1)
 	}()
+
+	return
 }
 
 type ServicesAdresses []string
 
 var ListServices map[string]ServicesAdresses
 
-func ListenService(name string) {
-	go func(name string) {
+func ListenService(name string, client *ConsulClient) {
+	if ListServices == nil {
+		ListServices = make(map[string]ServicesAdresses)
+	}
+	go func(name string, client *ConsulClient) {
 		for {
 			addrs, _, err := client.consul.Catalog().Service(name, "", nil)
 			if err != nil {
@@ -151,12 +156,10 @@ func ListenService(name string) {
 			var listIps ServicesAdresses
 
 			for _, addr := range addrs {
-				log.Println(addr.ServiceAddress + ":" + strconv.Itoa(addr.ServicePort))
 				listIps = append(listIps, addr.ServiceAddress+":"+strconv.Itoa(addr.ServicePort))
 			}
 			ListServices[name] = listIps
-			log.Println("wait...")
-			time.Sleep(10000 * time.Millisecond)
+			time.Sleep(15000 * time.Millisecond)
 		}
-	}()
+	}(name, client)
 }
