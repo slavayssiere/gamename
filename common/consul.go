@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"os/signal"
@@ -53,11 +54,9 @@ func GetOutboundIP() string {
 		os.Exit(1)
 	}
 
-	log.Printf("%s", addrs)
 	for _, a := range addrs {
 		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
-				log.Println("ip found: " + ipnet.IP.String())
 				clt = append(clt, ipnet.IP.String())
 				//os.Stdout.WriteString(ipnet.IP.String() + "\n")
 			}
@@ -142,6 +141,14 @@ func ConsulManagement(name string) (client *ConsulClient) {
 type ServicesAdresses []string
 
 var ListServices map[string]ServicesAdresses
+
+func GetIpForService(name string) (ret string) {
+	if ListServices[name] != nil {
+		ret = ListServices[name][rand.Intn(len(ListServices[name]))]
+	}
+
+	return
+}
 
 func ListenService(name string, client *ConsulClient) {
 	if ListServices == nil {

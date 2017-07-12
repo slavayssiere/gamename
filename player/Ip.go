@@ -7,13 +7,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"log"
-
 	"github.com/slavayssiere/gamename/common"
 )
 
 type IPData struct {
-	IP string `json:"ip"`
+	IP            string `json:"ip"`
+	ConnectPlayer string `json:"ip_player"`
 }
 
 // GetIP function to display IP
@@ -28,12 +27,10 @@ func (env *Env) GetIP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	ipdata := IPData{IP: common.GetOutboundIP()}
-
-	log.Println("player2")
-	log.Println(common.ListServices["player2"])
-	log.Println("player")
-	log.Println(common.ListServices["player"])
+	ipdata := IPData{
+		IP:            common.GetOutboundIP(),
+		ConnectPlayer: common.GetIpForService("player"),
+	}
 
 	if err := json.NewEncoder(w).Encode(ipdata); err != nil {
 		panic(err)
