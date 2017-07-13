@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"time"
@@ -140,20 +141,22 @@ func ConsulManagement(name string) (client *ConsulClient) {
 
 type ServicesAdresses []string
 
-var ListServices map[string]ServicesAdresses
+var ListServices = struct {
+	sync.RWMutex
+	m map[string]ServicesAdresses
+}{m: make(map[string]ServicesAdresses)}
 
 func GetIpForService(name string) (ret string) {
-	if ListServices[name] != nil {
-		ret = ListServices[name][rand.Intn(len(ListServices[name]))]
+	ListServices.RLock()
+	if ListServices.m[name] != nil {
+		ret = ListServices.m[name][rand.Intn(len(ListServices.m[name]))]
 	}
+	ListServices.RUnlock()
 
 	return
 }
 
 func ListenService(name string, client *ConsulClient) {
-	if ListServices == nil {
-		ListServices = make(map[string]ServicesAdresses)
-	}
 	go func(name string, client *ConsulClient) {
 		for {
 			addrs, _, err := client.consul.Catalog().Service(name, "", nil)
@@ -165,7 +168,9 @@ func ListenService(name string, client *ConsulClient) {
 			for _, addr := range addrs {
 				listIps = append(listIps, addr.ServiceAddress+":"+strconv.Itoa(addr.ServicePort))
 			}
-			ListServices[name] = listIps
+			ListServices.Lock()
+			ListServices.m[name] = listIps
+			ListServices.Unlock()
 			time.Sleep(15000 * time.Millisecond)
 		}
 	}(name, client)

@@ -6,6 +6,8 @@ services:
     command: agent -server -bootstrap-expect=3 -node=consul-master-1 -bind='{{ GetInterfaceIP "eth0" }}' -client=0.0.0.0 -ui
     ports:
       - 8500:8500
+    environment:
+      - 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true, "datacenter":"dc1", "acl_datacenter":"dc1", "acl_master_token":"28321E98-DBC7-47DA-A988-E0E8B56BCFEF" }'
     volumes:
       - consul-1:/consul/data
     networks:
@@ -17,6 +19,8 @@ services:
     command: agent -server -retry-join=consul -node=consul-master-2 -bind='{{ GetInterfaceIP "eth0" }}' -data-dir=/consul/data -client=0.0.0.0
     depends_on:
       - consul-master-1
+    environment:
+      - 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true, "datacenter":"dc1", "acl_datacenter":"dc1", "acl_master_token":"28321E98-DBC7-47DA-A988-E0E8B56BCFEF" }'
     volumes:
       - consul-2:/consul/data
     links:
@@ -32,6 +36,8 @@ services:
     command: agent -server -retry-join=consul -node=consul-master-3 -bind='{{ GetInterfaceIP "eth0" }}' -data-dir=/consul/data -client=0.0.0.0
     depends_on:
       - consul-master-1
+    environment:
+      - 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true, "datacenter":"dc1", "acl_datacenter":"dc1", "acl_master_token":"28321E98-DBC7-47DA-A988-E0E8B56BCFEF" }'
     volumes:
       - consul-3:/consul/data
     links:
@@ -39,6 +45,18 @@ services:
     networks:
       - netgate
 
+  vault:
+    image: vault
+    command: server
+    cap_add: 
+      - IPC_LOCK 
+    environment:
+      - 'VAULT_LOCAL_CONFIG={"backend": {"file": {"path": "/vault/file"}}, "default_lease_ttl": "168h", "max_lease_ttl": "720h"}'
+    ports:
+      - 8200:8200
+    volumes:
+     - vault:/vault/file
+    
   player:
     image: slavayssiere/player:0.1
     links:
@@ -155,4 +173,5 @@ volumes:
   consul-1:
   consul-2:
   consul-3:
+  vault:
     
