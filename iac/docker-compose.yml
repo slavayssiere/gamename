@@ -62,9 +62,11 @@ services:
     links:
       - consul-master-1:consul
       - playerdb:playerdb
+      - vault:vault
     environment:
       - CONSUL_HOST=consul:8500
       - MONGO_HOST=playerdb
+      - VAULT_HOST=vault:8200
     labels:
       - "traefik.backend=player"
       - "traefik.frontend.rule=Host:player.localhost"

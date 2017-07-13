@@ -36,7 +36,10 @@ func NewRouter(routesAsk Routes) *mux.Router {
 			Handler(handler)
 	}
 
+	fileHandler := http.StripPrefix("/swagger/", http.FileServer(http.Dir("./public/")))
+
 	router.Methods("GET").Path("/metrics").Name("Metrics").Handler(promhttp.Handler())
+	router.Methods("GET").PathPrefix("/").Name("Swagger").Handler(fileHandler)
 
 	prometheus.Register(histogram)
 

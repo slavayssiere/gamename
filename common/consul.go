@@ -31,8 +31,8 @@ type ConsulClient struct {
 	consul *consul.Client
 }
 
-//NewConsulClient returns a Client interface for given consul address
-func NewConsulClient() (*ConsulClient, error) {
+//newConsulClient returns a Client interface for given consul address
+func newConsulClient() (*ConsulClient, error) {
 	config := consul.DefaultConfig()
 	addr := os.Getenv("CONSUL_HOST")
 	if len(addr) == 0 {
@@ -120,7 +120,7 @@ var client *ConsulClient
 
 // ConsulManagement about Consul
 func ConsulManagement(name string) (client *ConsulClient) {
-	client, err := NewConsulClient()
+	client, err := newConsulClient()
 	if err != nil {
 		fmt.Println("Erreur in consul connexion: ", err)
 	}
