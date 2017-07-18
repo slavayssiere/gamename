@@ -20,4 +20,10 @@ var routes = Routes{
 		"/health",
 		HealthCheck,
 	},
+	Route{
+		"Connect",
+		"GET",
+		"/connect",
+		Connect,
+	},
 }

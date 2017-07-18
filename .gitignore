@@ -1,4 +1,3 @@
-docs-ui/
 player/player
 player/public
-front/node_modules/
+front/node_modules/*

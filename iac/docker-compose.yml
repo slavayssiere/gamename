@@ -93,6 +93,13 @@ services:
     networks:
       - netgate
   
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+     - 3001:8080
+    networks: 
+     - netgate
+
   grafana:
     image: grafana/grafana
     ports:
