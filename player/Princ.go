@@ -5,13 +5,14 @@ import (
 	"net/http"
 )
 
+// HelloWorld struct test
 // swagger:response HelloWorld
 type HelloWorld struct {
 	Hello string `json:"hello"`
 }
 
 // Index function for slash
-func (env *Env) Index(w http.ResponseWriter, r *http.Request) {
+func index(w http.ResponseWriter, r *http.Request) {
 
 	// swagger:route GET / tools getSlash
 	//

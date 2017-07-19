@@ -27,6 +27,7 @@ type Client interface {
 	DeRegister(string) error
 }
 
+// ConsulClient pointer to a client consul
 type ConsulClient struct {
 	consul *consul.Client
 }
@@ -46,7 +47,7 @@ func newConsulClient() (*ConsulClient, error) {
 	return &ConsulClient{consul: c}, nil
 }
 
-// Get preferred outbound ip of this machine
+// GetOutboundIP Get preferred outbound ip of this machine
 func GetOutboundIP() string {
 	var clt []string
 	addrs, err := net.InterfaceAddrs()
@@ -139,23 +140,25 @@ func ConsulManagement(name string) (client *ConsulClient) {
 	return
 }
 
-type ServicesAdresses []string
+type servicesAdresses []string
 
-var ListServices = struct {
+var listServices = struct {
 	sync.RWMutex
-	m map[string]ServicesAdresses
-}{m: make(map[string]ServicesAdresses)}
+	m map[string]servicesAdresses
+}{m: make(map[string]servicesAdresses)}
 
-func GetIpForService(name string) (ret string) {
-	ListServices.RLock()
-	if ListServices.m[name] != nil {
-		ret = ListServices.m[name][rand.Intn(len(ListServices.m[name]))]
+// GetIPForService get one random IP
+func GetIPForService(name string) (ret string) {
+	listServices.RLock()
+	if listServices.m[name] != nil {
+		ret = listServices.m[name][rand.Intn(len(listServices.m[name]))]
 	}
-	ListServices.RUnlock()
+	listServices.RUnlock()
 
 	return
 }
 
+// ListenService to subscribe to an consul service
 func ListenService(name string, client *ConsulClient) {
 	go func(name string, client *ConsulClient) {
 		for {
@@ -163,14 +166,14 @@ func ListenService(name string, client *ConsulClient) {
 			if err != nil {
 				log.Println("Erreur in consul list services: ", err)
 			}
-			var listIps ServicesAdresses
+			var listIps servicesAdresses
 
 			for _, addr := range addrs {
 				listIps = append(listIps, addr.ServiceAddress+":"+strconv.Itoa(addr.ServicePort))
 			}
-			ListServices.Lock()
-			ListServices.m[name] = listIps
-			ListServices.Unlock()
+			listServices.Lock()
+			listServices.m[name] = listIps
+			listServices.Unlock()
 			time.Sleep(15000 * time.Millisecond)
 		}
 	}(name, client)

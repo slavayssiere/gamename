@@ -5,7 +5,8 @@ import (
 	"net/http"
 )
 
-type StHealthCheck struct {
+// StatusHealthCheck data for health check
+type StatusHealthCheck struct {
 	Status string `json:"status"`
 	Code   int    `json:"code"`
 }
@@ -16,11 +17,11 @@ type StHealthCheck struct {
 // @Success 200 {object} string &quot;Success&quot;
 // @Failure 500 {object} string &quot;Not Found&quot;
 // @Resource /health
-func HealthCheck(w http.ResponseWriter, r *http.Request) {
+func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
-	record := StHealthCheck{Status: "OK", Code: 200}
+	record := StatusHealthCheck{Status: "OK", Code: 200}
 	if err := json.NewEncoder(w).Encode(record); err != nil {
 		panic(err)
 	}

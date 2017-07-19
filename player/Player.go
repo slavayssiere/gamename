@@ -5,11 +5,32 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/context"
+	"github.com/slavayssiere/gamename/common"
+
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-func (env *Env) PlayerCreate(w http.ResponseWriter, r *http.Request) {
+// Player is a player
+// swagger:response Player
+type Player struct {
+	ID        bson.ObjectId `json:"id" bson:"_id"`
+	FirstName string        `json:"firstname"`
+	LastName  string        `json:"lastname"`
+}
+
+// PlayerController to manage mgo
+type PlayerController struct {
+	session *mgo.Session
+}
+
+// NewPlayerController test
+func NewPlayerController(s *mgo.Session) *PlayerController {
+	return &PlayerController{s}
+}
+
+func (pc PlayerController) playerCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
@@ -37,34 +58,37 @@ func (env *Env) PlayerCreate(w http.ResponseWriter, r *http.Request) {
 	//       200: Player
 	//       500: ServerError
 
-	player1 := Player{FirstName: "aurelie", LastName: "samson"}
-	player1.create(env.session)
+	tmpuser := context.Get(r, common.AuthUser)
+	user := tmpuser.(common.GoogleAuth)
 
-	if err := json.NewEncoder(w).Encode(player1); err != nil {
+	player := Player{FirstName: user.GivenName, LastName: user.FamillyName}
+	player.createPlayer(pc.session)
+
+	if err := json.NewEncoder(w).Encode(player); err != nil {
 		panic(err)
 	}
 }
 
-// Player is a player
-// swagger:response Player
-type Player struct {
-	ID        bson.ObjectId `json:"id" bson:"_id,omitempty"`
-	FirstName string        `json:"firstname"`
-	LastName  string        `json:"lastname"`
-}
-
-func (player *Player) create(session *mgo.Session) {
+func (player *Player) createPlayer(session *mgo.Session) {
 	c := session.DB("player").C("player")
 
-	err := c.Insert(&player)
+	player.searchPlayer(session)
 
-	if err != nil {
-		log.Fatal(err)
+	if player.ID == "" {
+		log.Println("create new player")
+		player.ID = bson.NewObjectId()
+		err := c.Insert(player)
+
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+}
 
-	err = c.Find(bson.M{"firstname": "aurelie"}).One(&player)
+func (player *Player) searchPlayer(session *mgo.Session) {
+	c := session.DB("player").C("player")
 
-	if err != nil {
-		log.Fatal(err)
+	if err := c.Find(bson.M{"firstname": player.FirstName}).One(player); err != nil {
+		log.Println(err)
 	}
 }

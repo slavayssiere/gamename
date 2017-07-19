@@ -8,11 +8,11 @@ import (
 // VersionData struct for version
 // swagger:response VersionData
 type VersionData struct {
-	Version   int     `required json:"version" description:"api player version"`
+	Version   int     `json:"version" description:"api player version"`
 	GOVersion float32 `json:"go_version" description:"golang version"`
 }
 
-func (env *Env) VersionAPI(w http.ResponseWriter, r *http.Request) {
+func versionAPI(w http.ResponseWriter, r *http.Request) {
 
 	// swagger:route GET /version tools getVersion
 	//

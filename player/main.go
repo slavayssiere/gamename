@@ -45,7 +45,7 @@ import (
 	mgo "gopkg.in/mgo.v2"
 )
 
-type Env struct {
+type DataStore struct {
 	session *mgo.Session
 }
 
@@ -58,32 +58,32 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	env := &Env{session: db}
+	pc := NewPlayerController(db)
 
 	var routes = common.Routes{
 		common.Route{
 			"Index",
 			"GET",
 			"/",
-			env.Index,
+			index,
 		},
 		common.Route{
 			"Version",
 			"GET",
 			"/version",
-			env.VersionAPI,
+			versionAPI,
 		},
 		common.Route{
 			"IPs",
 			"GET",
 			"/ip",
-			env.GetIP,
+			getIP,
 		},
 		common.Route{
 			"PlayerCreate",
 			"POST",
 			"/player",
-			env.PlayerCreate,
+			pc.playerCreate,
 		},
 	}
 

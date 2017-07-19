@@ -7,6 +7,7 @@ import (
 	"github.com/slavayssiere/gamename/common"
 )
 
+// IPData struct for ip send
 // swagger:response IPData
 type IPData struct {
 
@@ -44,7 +45,7 @@ type ServerError struct {
 	}
 }
 
-func (env *Env) GetIP(w http.ResponseWriter, r *http.Request) {
+func getIP(w http.ResponseWriter, r *http.Request) {
 
 	// swagger:route GET /ip tools getIp
 	//
@@ -68,7 +69,7 @@ func (env *Env) GetIP(w http.ResponseWriter, r *http.Request) {
 
 	ipdata := IPData{
 		IP:            common.GetOutboundIP(),
-		ConnectPlayer: common.GetIpForService("player"),
+		ConnectPlayer: common.GetIPForService("player"),
 	}
 
 	if err := json.NewEncoder(w).Encode(ipdata); err != nil {

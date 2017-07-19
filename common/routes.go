@@ -4,6 +4,7 @@ import (
 	"net/http"
 )
 
+// Route define a route
 type Route struct {
 	Name        string
 	Method      string
@@ -11,6 +12,7 @@ type Route struct {
 	HandlerFunc http.HandlerFunc
 }
 
+// Routes slices of Route
 type Routes []Route
 
 var routes = Routes{
@@ -18,12 +20,6 @@ var routes = Routes{
 		"Health",
 		"GET",
 		"/health",
-		HealthCheck,
-	},
-	Route{
-		"Connect",
-		"GET",
-		"/connect",
-		Connect,
+		healthCheck,
 	},
 }

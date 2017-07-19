@@ -103,7 +103,7 @@ services:
   grafana:
     image: grafana/grafana
     ports:
-     - 3000:3000
+     - 3002:3000
     links:
      - prometheus:prometheus
     environment:
