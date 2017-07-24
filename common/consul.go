@@ -40,10 +40,12 @@ func newConsulClient() (*ConsulClient, error) {
 		addr = "127.0.0.1:8500"
 	}
 	config.Address = addr
+
 	c, err := consul.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
+
 	return &ConsulClient{consul: c}, nil
 }
 
@@ -117,7 +119,7 @@ func (c *ConsulClient) Service(service string, tag string) ([]*consul.ServiceEnt
 	return addrs, meta, nil
 }
 
-var client *ConsulClient
+var kv *consul.KV
 
 // ConsulManagement about Consul
 func ConsulManagement(name string) (client *ConsulClient) {
@@ -126,6 +128,7 @@ func ConsulManagement(name string) (client *ConsulClient) {
 		fmt.Println("Erreur in consul connexion: ", err)
 	}
 	client.Register(name, 8080)
+	kv = client.consul.KV()
 
 	//deregister when Ctrl+C && exit
 	c := make(chan os.Signal, 2)
@@ -138,6 +141,21 @@ func ConsulManagement(name string) (client *ConsulClient) {
 	}()
 
 	return
+}
+
+// SetVariable allow to put a variable in Consul KV
+func SetVariable(key string, value string) {
+	d := &consul.KVPair{Key: key, Value: []byte(value)}
+	kv.Acquire(d, nil)
+}
+
+// GetVariable allow to get a variable from Consul KV
+func GetVariable(key string) (value string) {
+	kvp, _, err := kv.Get(key, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return string(kvp.Value)
 }
 
 type servicesAdresses []string

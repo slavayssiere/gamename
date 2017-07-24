@@ -25,7 +25,10 @@ func NewRouter(routesAsk Routes) *mux.Router {
 		var handler http.Handler
 
 		handler = route.HandlerFunc
-		handler = Logger(handler, route.Name, histogram)
+		handler = LoggerMiddleware(handler, route.Name, histogram)
+		if route.Name != "Health" {
+			handler = GAuthMiddleware(handler)
+		}
 
 		fmt.Println(route)
 
@@ -39,6 +42,8 @@ func NewRouter(routesAsk Routes) *mux.Router {
 	fileHandler := http.StripPrefix("/swagger/", http.FileServer(http.Dir("./public/")))
 
 	router.Methods("GET").Path("/metrics").Name("Metrics").Handler(promhttp.Handler())
+
+	fileHandler = LoggerMiddleware(fileHandler, "Swagger", histogram)
 	router.Methods("GET").PathPrefix("/").Name("Swagger").Handler(fileHandler)
 
 	prometheus.Register(histogram)

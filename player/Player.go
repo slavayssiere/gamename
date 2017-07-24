@@ -58,11 +58,14 @@ func (pc PlayerController) playerCreate(w http.ResponseWriter, r *http.Request) 
 	//       200: Player
 	//       500: ServerError
 
+	ds := pc.session.Copy()
+	defer ds.Close()
+
 	tmpuser := context.Get(r, common.AuthUser)
 	user := tmpuser.(common.GoogleAuth)
 
 	player := Player{FirstName: user.GivenName, LastName: user.FamillyName}
-	player.createPlayer(pc.session)
+	player.createPlayer(ds)
 
 	if err := json.NewEncoder(w).Encode(player); err != nil {
 		panic(err)
