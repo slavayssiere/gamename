@@ -1,0 +1,83 @@
+version: "3"
+
+services:  
+
+  prometheus:
+    image: quay.io/prometheus/prometheus:latest
+    ports:
+     - 9090:9090
+    volumes:
+     - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    external_links:
+     - consul-master-1:consul
+     - prom-playerdb:prom-playerdb
+    networks:
+      - ext_netgate
+
+  grafana:
+    image: grafana/grafana
+    ports:
+     - 3002:3000
+    depends_on:
+      - prometheus
+    links:
+     - prometheus:prometheus
+    environment:
+     - GF_SECURITY_ADMIN_PASSWORD=secret
+    networks:
+      - ext_netgate
+  
+  prom-playerdb:
+    image: eses/mongodb_exporter
+    command: -mongodb.uri mongodb://bdd:27017
+    external_links:
+      - playerdb:bdd
+    depends_on:
+      - prometheus
+    networks:
+      - ext_netgate   
+
+  prom-consul:
+    image: prom/consul-exporter
+    command: -consul.server=consul:8500
+    external_links:
+      - consul-master-1:consul
+    depends_on:
+      - prometheus
+    networks:
+      - ext_netgate
+
+################# OLD STUFF
+  # playerdb:
+  #   image: mariadb:10.3.0
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=my-secret-pw
+  #     - MYSQL_DATABASE=player
+  #     - MYSQL_USER=myaccount
+  #     - MYSQL_PASSWORD=mypassword
+  #   networks:
+  #     - netgate
+  # playerdb:
+  #   image: mongo:3.5.9
+  #   ports:
+  #     - 27017:27017
+  #   networks:
+  #     - netgate
+
+  # prom-playerdb:
+  #   image: prom/mysqld-exporter
+  #   ports:
+  #     - 9104:9104
+  #   links:
+  #     - playerdb:bdd
+  #   depends_on:
+  #     - playerdb
+  #   environment:
+  #     - DATA_SOURCE_NAME="myaccount:mypassword@(bdd:3306)/player"
+  #   networks:
+  #     - netgate
+
+networks:
+  ext_netgate:
+    external:
+      name: infrastructure_netgate
