@@ -11,14 +11,38 @@ import (
 )
 
 // NewRouter add all routes
-func NewRouter(routesAsk Routes) *mux.Router {
+func NewRouter(routesAsk Routes, servicename string) *mux.Router {
+
 	histogram := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name: "uri_duration_seconds",
+		Name: servicename + "_uri_duration_seconds",
 		Help: "Time to respond",
-	}, []string{"uri"})
+	}, []string{servicename})
+
+	// collector, err := zipkin.NewHTTPCollector(os.Getenv("JAEGER_HOST"))
+	// if err != nil {
+	// 	fmt.Printf("unable to create Zipkin HTTP collector: %+v\n", err)
+	// 	os.Exit(-1)
+	// }
+
+	// hostPort := GetOutboundIP() + ":8080"
+	// // create recorder.
+	// recorder := zipkin.NewRecorder(collector, true, hostPort, servicename)
+
+	// // create tracer.
+	// tracer, err := zipkin.NewTracer(
+	// 	recorder,
+	// 	zipkin.ClientServerSameSpan(false), //same span can be set to true for RPC style spans (Zipkin V1) vs Node style (OpenTracing)
+	// 	zipkin.TraceID128Bit(true),         //make Tracer generate 128 bit traceID's for root spans.
+	// )
+	// if err != nil {
+	// 	fmt.Printf("unable to create Zipkin tracer: %+v\n", err)
+	// 	os.Exit(-1)
+	// }
+
+	// // explicitly set our tracer to be the default tracer.
+	// opentracing.InitGlobalTracer(tracer)
 
 	router := mux.NewRouter().StrictSlash(true)
-
 	routes = append(routes, routesAsk...)
 
 	for _, route := range routes {
@@ -26,7 +50,8 @@ func NewRouter(routesAsk Routes) *mux.Router {
 
 		handler = route.HandlerFunc
 		handler = LoggerMiddleware(handler, route.Name, histogram)
-		if route.Name != "Health" {
+		//handler = middleware.FromHTTPRequest(tracer, route.Name)(handler)
+		if route.Protected {
 			handler = GAuthMiddleware(handler)
 		}
 

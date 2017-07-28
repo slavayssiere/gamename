@@ -8,6 +8,8 @@ services:
      - 9090:9090
     volumes:
      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    environment:
+     - "CONSUL_HTTP_TOKEN=${CONSUL_MASTER_TOKEN}"
     external_links:
      - consul-master-1:consul
      - prom-playerdb:prom-playerdb
@@ -29,7 +31,7 @@ services:
   
   prom-playerdb:
     image: eses/mongodb_exporter
-    command: -mongodb.uri mongodb://bdd:27017
+    command: -mongodb.uri mongodb://mongodb_exporter:s3cr3tpassw0rd@bdd:27017
     external_links:
       - playerdb:bdd
     depends_on:
@@ -40,6 +42,8 @@ services:
   prom-consul:
     image: prom/consul-exporter
     command: -consul.server=consul:8500
+    environment:
+     - "CONSUL_HTTP_TOKEN=${CONSUL_MASTER_TOKEN}"
     external_links:
       - consul-master-1:consul
     depends_on:

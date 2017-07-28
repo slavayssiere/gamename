@@ -7,7 +7,7 @@ services:
     ports:
       - 8500:8500
     environment:
-      - 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true, "acl_datacenter":"local1", "acl_master_token":"${VAULT_MASTER_TOKEN}", "acl_default_policy": "deny" }'
+      - 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true, "acl_datacenter":"local1", "acl_master_token":"${CONSUL_MASTER_TOKEN}", "acl_default_policy": "deny" }'
     volumes:
       - consul-1:/consul/data
     networks:
@@ -20,7 +20,7 @@ services:
     depends_on:
       - consul-master-1
     environment:
-      - 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true, "acl_datacenter":"local1", "acl_master_token":"${VAULT_MASTER_TOKEN}", "acl_default_policy": "deny" }'
+      - 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true, "acl_datacenter":"local1", "acl_master_token":"${CONSUL_MASTER_TOKEN}", "acl_default_policy": "deny" }'
     volumes:
       - consul-2:/consul/data
     links:
@@ -35,7 +35,7 @@ services:
     depends_on:
       - consul-master-1
     environment:
-      - 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true, "acl_datacenter":"local1", "acl_master_token":"${VAULT_MASTER_TOKEN}", "acl_default_policy": "deny" }'
+      - 'CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt": true, "acl_datacenter":"local1", "acl_master_token":"${CONSUL_MASTER_TOKEN}", "acl_default_policy": "deny" }'
     volumes:
       - consul-3:/consul/data
     links:
@@ -56,7 +56,7 @@ services:
       - 'VAULT_LOCAL_CONFIG={"backend":{"consul":{"address":"consul:8500", "scheme":"http", "service":"vault-service"}}, "listener":{"tcp":{"address":"0.0.0.0:8200", "tls_disable":"1"}}}'
     #  - 'VAULT_DEV_ROOT_TOKEN_ID=97CFFBCE-18EE-42F7-B60E-E69F3EAE0E32'
       - 'VAULT_ADDR=http://127.0.0.1:8200'
-      - "CONSUL_HTTP_TOKEN=${VAULT_MASTER_TOKEN}"
+      - "CONSUL_HTTP_TOKEN=${CONSUL_MASTER_TOKEN}"
       - 'VAULT_REDIRECT_ADDR=http://127.0.0.1:8201'
     volumes:
       - vault:/vault/file
@@ -67,51 +67,65 @@ services:
   
   loadbalancer:
     image: traefik:v1.3.3-alpine
-    command: --web --logLevel=DEBUG
+    command: --web
     ports:
       - 8082:80
       - 8081:8080
     environment:
-      - "CONSUL_HTTP_TOKEN=${VAULT_MASTER_TOKEN}"
+      - "CONSUL_HTTP_TOKEN=${CONSUL_MASTER_TOKEN}"
     volumes:
       - "./traefik.toml:/traefik.toml"
     links:
       - consul-master-1:consul
+    depends_on:
+      - consul-master-1
     networks:
       - netgate
-
-  # player:
-  #   image: slavayssiere/player:0.1
-  #   links:
-  #     - consul-master-1:consul
-  #     - playerdb:playerdb
-  #     - vault:vault
-  #   environment:
-  #     - CONSUL_HOST=consul:8500
-  #     - CONSUL_HTTP_TOKEN=28321E98-DBC7-47DA-A988-E0E8B56BCFEF
-  #     - MONGO_HOST=playerdb
-  #     - VAULT_HOST=vault:8200
-  #   labels:
-  #     - "traefik.backend=player"
-  #     - "traefik.frontend.rule=Host:player.localhost"
-  #   networks:
-  #     - netgate
 
   playerdb:
     image: mongo:3.5.9
+    command: --auth --bind_ip_all
     ports:
       - 27017:27017
+    volumes:
+      - player-data-db:/data/db
+      - player-data-configdb:/data/configdb
     networks:
       - netgate
 
-  
-  # swagger-ui:
-  #   image: swaggerapi/swagger-ui
-  #   ports:
-  #    - 3001:8080
-  #   networks: 
-  #    - netgate
-    
+  monsterdb:
+    image: mongo:3.5.9
+    command: --auth --bind_ip_all
+    ports:
+      - 27018:27017
+    volumes:
+      - monsters-data-db:/data/db
+      - monsters-data-configdb:/data/configdb
+    networks:
+      - netgate
+
+
+  jaegertracing:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - 5775:5775/udp 
+      - 6831:6831/udp 
+      - 6832:6832/udp
+      - 5778:5778 
+      - 16686:16686 
+      - 14268:14268 
+    networks:
+      - netgate
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+     - 3001:8080
+    environment:
+     - 'API_URL=http://localhost:8080/swagger/index.json'
+    networks: 
+     - netgate
+
 networks:
   netgate:
     driver: bridge
@@ -121,4 +135,8 @@ volumes:
   consul-2:
   consul-3:
   vault:
+  player-data-db:
+  player-data-configdb:
+  monsters-data-db:
+  monsters-data-configdb:
     

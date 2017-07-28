@@ -1,4 +1,4 @@
-// Package classification Player API.
+// Package classification Monsters API.
 //
 // the purpose of this application is to provide an application
 // that is using plain go code to define an API
@@ -51,7 +51,7 @@ type DataStore struct {
 
 func main() {
 
-	clientconsul := common.ConsulManagement("player")
+	clientconsul := common.ConsulManagement("monsters")
 	common.ListenService("player", clientconsul)
 
 	appname := common.GetVariable("appconfig/appname")
@@ -60,8 +60,6 @@ func main() {
 	appversion := common.GetVariable("appconfig/appversion")
 	log.Printf("AppVersion: %s", appversion)
 
-	common.SetVariable("appconfig/app-test", "mine")
-
 	clientvault, err := common.VaultManagement()
 	if err != nil {
 		log.Fatalln(err)
@@ -69,13 +67,13 @@ func main() {
 
 	addr := os.Getenv("MONGO_HOST")
 	if len(addr) == 0 {
-		addr = "127.0.0.1:27017"
+		addr = "127.0.0.1:27018"
 	}
-	db, err := common.ConnectDatabase(clientvault, addr)
+	db, err := ConnectDatabase(clientvault, addr)
 	if err != nil {
 		log.Panic(err)
 	}
-	pc := NewPlayerController(db)
+	mc := NewMonstersController(db)
 
 	var routes = common.Routes{
 		common.Route{
@@ -93,22 +91,22 @@ func main() {
 			Protected:   false,
 		},
 		common.Route{
-			Name:        "IPs",
+			Name:        "ListMonsters",
 			Method:      "GET",
-			Pattern:     "/ip",
-			HandlerFunc: getIP,
+			Pattern:     "/monsters",
+			HandlerFunc: getMonsters,
 			Protected:   false,
 		},
 		common.Route{
-			Name:        "PlayerCreate",
+			Name:        "MonsterCreate",
 			Method:      "POST",
-			Pattern:     "/player",
-			HandlerFunc: pc.playerCreate,
+			Pattern:     "/monster",
+			HandlerFunc: mc.monsterCreate,
 			Protected:   false,
 		},
 	}
 
-	router := common.NewRouter(routes, "player")
+	router := common.NewRouter(routes, "monsters")
 
 	headersOk := handlers.AllowedHeaders([]string{"authorization", "content-type"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})

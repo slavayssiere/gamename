@@ -145,15 +145,17 @@ func ConsulManagement(name string) (client *ConsulClient) {
 
 // SetVariable allow to put a variable in Consul KV
 func SetVariable(key string, value string) {
-	d := &consul.KVPair{Key: key, Value: []byte(value)}
-	kv.Acquire(d, nil)
+	kv.Put(&consul.KVPair{Key: key, Value: []byte(value)}, nil)
 }
 
 // GetVariable allow to get a variable from Consul KV
 func GetVariable(key string) (value string) {
 	kvp, _, err := kv.Get(key, nil)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalln(err)
+	}
+	if kvp == nil {
+		return ""
 	}
 	return string(kvp.Value)
 }

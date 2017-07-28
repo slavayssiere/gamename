@@ -4,18 +4,15 @@ defaultEntryPoints = ["http"]
   [entryPoints.http]
   address = ":80"
 
-
 [consul]
   endpoint = "consul:8500"
   watch = true
   prefix = "traefik"
-
 
 [consulCatalog]
   endpoint = "consul:8500"
   domain = "localhost"
   prefix = "traefik-consul"
 
-
 [web]
-  address = ":8080"
+  address = ":8081"

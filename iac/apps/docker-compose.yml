@@ -1,0 +1,25 @@
+version: "3"
+
+services:  
+  player:
+    image: slavayssiere/player:0.1
+    links:
+      - consul-master-1:consul
+      - playerdb:playerdb
+      - vault:vault
+    environment:
+      - CONSUL_HOST=consul:8500
+      - CONSUL_HTTP_TOKEN=${CONSUL_MASTER_TOKEN}
+      - MONGO_HOST=playerdb
+      - VAULT_HOST=vault:8200
+      - VAULT_TOKEN=${VAULT_PLAYER_TOKEN}
+    labels:
+      - "traefik.backend=player"
+      - "traefik.frontend.rule=Host:player.localhost"
+    networks:
+      - ext_netgate
+
+ networks:
+  ext_netgate:
+    external:
+      name: infrastructure_netgate

@@ -10,6 +10,7 @@ type Route struct {
 	Method      string
 	Pattern     string
 	HandlerFunc http.HandlerFunc
+	Protected   bool
 }
 
 // Routes slices of Route
@@ -17,9 +18,10 @@ type Routes []Route
 
 var routes = Routes{
 	Route{
-		"Health",
-		"GET",
-		"/health",
-		healthCheck,
+		Name:        "Health",
+		Method:      "GET",
+		Pattern:     "/health",
+		HandlerFunc: healthCheck,
+		Protected:   false,
 	},
 }

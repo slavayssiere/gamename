@@ -35,6 +35,7 @@ scrape_configs:
   - job_name: 'consul_catalog'
     consul_sd_configs:
       - server: 'consul:8500'
+        token: '28321E98-DBC7-47DA-A988-E0E8B56BCFEF'
     relabel_configs:
       - source_labels: [__meta_consul_service]
         target_label: service
